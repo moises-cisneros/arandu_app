@@ -49,7 +49,7 @@ describe("DataAnchor Contract", function () {
 
         it("should not allow non-owner to anchor hash", async function () {
             const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
-            await expect(dataAnchor.connect(nonAdmin).anchorHash(hash)).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(dataAnchor.connect(nonAdmin).anchorHash(hash)).to.be.revertedWithCustomError(dataAnchor, "OwnableUnauthorizedAccount");
         });
     });
 

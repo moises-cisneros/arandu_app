@@ -67,7 +67,7 @@ async function saveDeployment(network, contractName, contractAddress, abi) {
 
 async function main() {
     const network = hre.network.name;
-    console.log(`🚀 Desplegando ecosistema ARANDU en red: ${network}`);
+    console.log(`🚀 Desplegando ecosistema ARANDU mejorado en red: ${network}`);
 
     let deployer;
     if (network === "hardhat") {
@@ -81,8 +81,8 @@ async function main() {
     const balance = await deployer.provider.getBalance(deployer.address);
     console.log("💰 Balance de la cuenta:", ethers.formatEther(balance), "ETH");
 
-    // Desplegar ANDUToken
-    console.log("\n1️⃣ Desplegando ANDUToken...");
+    // Desplegar ANDUToken con AccessControl
+    console.log("\n1️⃣ Desplegando ANDUToken con AccessControl...");
     const ANDUToken = await ethers.getContractFactory("ANDUToken", deployer);
     const anduToken = await ANDUToken.deploy(deployer.address);
     await anduToken.waitForDeployment();
@@ -97,34 +97,34 @@ async function main() {
     const certificatesAddress = await aranduCertificates.getAddress();
     console.log("✅ AranduCertificates desplegado en:", certificatesAddress);
 
-    // Desplegar AranduRewards
-    console.log("\n3️⃣ Desplegando AranduRewards...");
+    // Desplegar AranduBadges
+    console.log("\n3️⃣ Desplegando AranduBadges...");
+    const AranduBadges = await ethers.getContractFactory("AranduBadges", deployer);
+    const aranduBadges = await AranduBadges.deploy(deployer.address);
+    await aranduBadges.waitForDeployment();
+    const badgesAddress = await aranduBadges.getAddress();
+    console.log("✅ AranduBadges desplegado en:", badgesAddress);
+
+    // Desplegar AranduRewards (Enhanced)
+    console.log("\n4️⃣ Desplegando AranduRewards Enhanced...");
     const AranduRewards = await ethers.getContractFactory("AranduRewards", deployer);
     const aranduRewards = await AranduRewards.deploy(deployer.address);
     await aranduRewards.waitForDeployment();
     const rewardsAddress = await aranduRewards.getAddress();
     console.log("✅ AranduRewards desplegado en:", rewardsAddress);
 
-    // Configurar direcciones en AranduRewards
+    // Configurar direcciones en AranduRewards (now includes badges)
     console.log("\n🔧 Configurando direcciones en AranduRewards...");
-    await aranduRewards.setAddresses(anduTokenAddress, certificatesAddress);
+    await aranduRewards.setAddresses(anduTokenAddress, certificatesAddress, badgesAddress);
     console.log("✅ Direcciones configuradas correctamente");
 
     // Desplegar AranduResources
-    console.log("\n4️⃣ Desplegando AranduResources...");
+    console.log("\n5️⃣ Desplegando AranduResources...");
     const AranduResources = await ethers.getContractFactory("AranduResources", deployer);
     const aranduResources = await AranduResources.deploy(anduTokenAddress);
     await aranduResources.waitForDeployment();
     const resourcesAddress = await aranduResources.getAddress();
     console.log("✅ AranduResources desplegado en:", resourcesAddress);
-
-    // Desplegar AranduBadges
-    console.log("\n5️⃣ Desplegando AranduBadges...");
-    const AranduBadges = await ethers.getContractFactory("AranduBadges", deployer);
-    const aranduBadges = await AranduBadges.deploy(deployer.address);
-    await aranduBadges.waitForDeployment();
-    const badgesAddress = await aranduBadges.getAddress();
-    console.log("✅ AranduBadges desplegado en:", badgesAddress);
 
     // Desplegar DataAnchor
     console.log("\n6️⃣ Desplegando DataAnchor...");
@@ -133,6 +133,17 @@ async function main() {
     await dataAnchor.waitForDeployment();
     const dataAnchorAddress = await dataAnchor.getAddress();
     console.log("✅ DataAnchor desplegado en:", dataAnchorAddress);
+
+    // Configuración de roles y permisos
+    console.log("\n🔐 Configurando roles y permisos...");
+
+    // Grant MINTER_ROLE to AranduRewards contract
+    await anduToken.addMinter(rewardsAddress);
+    console.log("✅ AranduRewards agregado como MINTER");
+
+    // Example: Add a sample teacher (you can modify this)
+    // await anduToken.addTeacher("0x..."); // Add real teacher address
+    console.log("✅ Roles configurados");
 
     // Configuración inicial: Transferir tokens a AranduRewards para tesorería
     console.log("\n💰 Configurando tesorería inicial...");
@@ -168,15 +179,23 @@ async function main() {
     console.log("=".repeat(60));
 
     console.log("\n🔧 Configuraciones aplicadas:");
-    console.log(`• AranduRewards configurado con ANDUToken y AranduCertificates`);
+    console.log(`• AranduRewards configurado con ANDUToken, AranduCertificates y AranduBadges`);
+    console.log(`• AranduRewards tiene MINTER_ROLE en ANDUToken`);
     console.log(`• Tesorería inicial: ${ethers.formatEther(treasuryAmount)} ANDU tokens`);
+    console.log(`• AccessControl habilitado en ANDUToken`);
+    console.log(`• Gamificación automática habilitada`);
     console.log(`• Todos los contratos propiedad de: ${deployer.address}`);
+
+    console.log("\n🎮 Funcionalidades de gamificación:");
+    console.log(`• Badges automáticos por rachas de 5 días`);
+    console.log(`• Badge "Token Master" por 1000 ANDU ganados`);
+    console.log(`• Badge "Certificate Collector" por 5 certificados`);
 
     console.log("\n📁 Artefactos guardados en:");
     console.log(`• deployments/${network}/`);
     console.log(`• abis/${network}/`);
 
-    console.log("\n🚀 El ecosistema ARANDU está listo para usar!");
+    console.log("\n🚀 El ecosistema ARANDU mejorado está listo para usar!");
 }
 
 main().catch((error) => {

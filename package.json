@@ -31,6 +31,8 @@
     "lint": "eslint . --ext .js,.ts",
     "generate": "hardhat run scripts/generateWallet.js",
     "account": "hardhat run scripts/account.js",
+    "account:select": "hardhat run scripts/account-select.js",
+    "setup:env": "node scripts/setup-env.js",
     "deploy": "hardhat deploy",
     "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
     "deploy:testnet": "hardhat run scripts/deploy.js --network lisk-sepolia",

@@ -28,7 +28,7 @@ describe("HU02 - Student as Learner: Receiving Rewards and Certificates", functi
         await aranduCertificates.waitForDeployment();
 
         // Set addresses in AranduRewards
-        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress());
+        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress);
     });
 
     describe("Receiving Token Rewards", function () {

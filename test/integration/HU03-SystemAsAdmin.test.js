@@ -32,7 +32,7 @@ describe("HU03 - System as Admin: Exclusive Control Over Critical Functions", fu
         await aranduResources.waitForDeployment();
 
         // Set addresses in AranduRewards
-        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress());
+        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress);
     });
 
     describe("Permission Tests: onlyOwner Modifiers", function () {
@@ -44,7 +44,7 @@ describe("HU03 - System as Admin: Exclusive Control Over Critical Functions", fu
             it("should revert when called by non-owner", async function () {
                 await expect(
                     anduToken.connect(creatorTeacher).mint(creatorTeacher.address, ethers.parseEther("100"))
-                ).to.be.revertedWithCustomError(anduToken, "OwnableUnauthorizedAccount");
+                ).to.be.revertedWithCustomError(anduToken, "AccessControlUnauthorizedAccount");
             });
         });
 
@@ -63,13 +63,13 @@ describe("HU03 - System as Admin: Exclusive Control Over Critical Functions", fu
         context("when testing AranduRewards setAddresses function", function () {
             it("should succeed when called by deployer", async function () {
                 await expect(
-                    aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress())
+                    aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress)
                 ).to.not.be.reverted;
             });
 
             it("should revert when called by non-owner", async function () {
                 await expect(
-                    aranduRewards.connect(creatorTeacher).setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress())
+                    aranduRewards.connect(creatorTeacher).setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress)
                 ).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
             });
         });

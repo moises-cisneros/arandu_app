@@ -22,7 +22,7 @@ describe("AranduRewards", function () {
         aranduCertificates = await AranduCertificates.deploy(await aranduRewards.getAddress());
         await aranduCertificates.waitForDeployment();
 
-        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress());
+        await aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress);
     });
 
     describe("Deployment", function () {
@@ -33,11 +33,11 @@ describe("AranduRewards", function () {
 
     describe("Set Addresses", function () {
         it("Should allow the owner to set addresses", async function () {
-            await expect(aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress())).to.not.be.reverted;
+            await expect(aranduRewards.setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress)).to.not.be.reverted;
         });
 
         it("Should fail if a non-owner tries to set addresses", async function () {
-            await expect(aranduRewards.connect(teacher1).setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress())).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
+            await expect(aranduRewards.connect(teacher1).setAddresses(await anduToken.getAddress(), await aranduCertificates.getAddress(), ethers.ZeroAddress)).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
         });
     });
 

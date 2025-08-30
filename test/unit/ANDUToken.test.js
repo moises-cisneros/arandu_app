@@ -33,7 +33,7 @@ describe("ANDUToken", function () {
         });
 
         it("Should fail if a non-owner tries to mint", async function () {
-            await expect(anduToken.connect(teacher1).mint(teacher1.address, 100)).to.be.revertedWithCustomError(anduToken, "OwnableUnauthorizedAccount");
+            await expect(anduToken.connect(teacher1).mint(teacher1.address, 100)).to.be.revertedWithCustomError(anduToken, "AccessControlUnauthorizedAccount");
         });
     });
 });

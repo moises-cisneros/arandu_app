@@ -42,7 +42,7 @@ async function main() {
 
     // Guardar en archivo JSON
     const walletPath = path.join(walletsDir, `wallet-${nextNum}.json`);
-    fs.writeFileSync(walletPath, JSON.stringify(encryptedWallet, null, 2));
+    fs.writeFileSync(walletPath, encryptedWallet);
 
     console.log(`Wallet encriptada guardada en: ${walletPath}`);
     console.log("Recuerda guardar la private key de forma segura!");

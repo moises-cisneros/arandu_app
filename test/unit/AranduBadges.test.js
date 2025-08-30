@@ -48,7 +48,7 @@ describe("AranduBadges Contract", function () {
 
         it("should not allow non-owner to mint", async function () {
             const name = "Test Badge";
-            await expect(badges.connect(recipient).safeMint(recipient.address, name)).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(badges.connect(recipient).safeMint(recipient.address, name)).to.be.revertedWithCustomError(badges, "OwnableUnauthorizedAccount");
         });
     });
 

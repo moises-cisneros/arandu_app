@@ -32,15 +32,15 @@ describe("HU04 - Teacher as Consumer: Browsing and Purchasing Licenses", functio
                 const price = ethers.parseEther("5");
                 await aranduResources.connect(creatorTeacher).setLicensePrice(1, price);
 
-                // Check initial balances
+                // Buyer gets tokens and approves spending
+                await anduToken.transfer(buyerTeacher.address, ethers.parseEther("10"));
+                await anduToken.connect(buyerTeacher).approve(await aranduResources.getAddress(), ethers.parseEther("10"));
+
+                // Check initial balances after funding
                 const initialBuyerAndu = await anduToken.balanceOf(buyerTeacher.address);
                 const initialBuyerLicenses = await aranduResources.balanceOf(buyerTeacher.address, 1);
                 const initialCreatorAndu = await anduToken.balanceOf(creatorTeacher.address);
                 const initialCreatorLicenses = await aranduResources.balanceOf(creatorTeacher.address, 1);
-
-                // Buyer gets tokens and approves spending
-                await anduToken.transfer(buyerTeacher.address, ethers.parseEther("10"));
-                await anduToken.connect(buyerTeacher).approve(await aranduResources.getAddress(), ethers.parseEther("10"));
 
                 // Buyer purchases 2 licenses
                 const quantity = 2;

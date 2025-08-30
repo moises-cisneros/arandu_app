@@ -57,10 +57,12 @@ contract AranduRewards is Ownable {
      * @dev Issues a certificate to a student. Only callable by the owner.
      * @param _student The address of the student.
      * @param _uri The metadata URI for the certificate.
+     * @param _certType The type of certificate: "student" or "teacher".
      */
     function issueCertificate(
         address _student,
-        string memory _uri
+        string memory _uri,
+        string memory _certType
     ) public onlyOwner {
         require(
             certificateContractAddress != address(0),
@@ -69,6 +71,6 @@ contract AranduRewards is Ownable {
         AranduCertificates certificate = AranduCertificates(
             certificateContractAddress
         );
-        certificate.safeMint(_student, _uri);
+        certificate.safeMint(_student, _uri, _certType);
     }
 }

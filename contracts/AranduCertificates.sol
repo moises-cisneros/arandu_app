@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract AranduCertificates is ERC721, ERC721URIStorage, Ownable {
     uint256 private _nextTokenId;
+    mapping(uint256 => string) public certificateType; // e.g., "student" or "teacher"
 
     /**
      * @dev Constructor that sets the initial owner.
@@ -56,10 +57,12 @@ contract AranduCertificates is ERC721, ERC721URIStorage, Ownable {
      * @dev Mints a new certificate NFT. Only callable by the owner.
      * @param to The address to receive the certificate.
      * @param uri The metadata URI for the certificate.
+     * @param certType The type of certificate: "student" or "teacher".
      */
-    function safeMint(address to, string memory uri) public onlyOwner {
+    function safeMint(address to, string memory uri, string memory certType) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+        certificateType[tokenId] = certType;
     }
 }

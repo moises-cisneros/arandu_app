@@ -65,7 +65,7 @@ describe("HU02 - Student as Learner: Receiving Rewards and Certificates", functi
                 const certUri = "https://example.com/certificate/1";
 
                 // Issue certificate
-                await aranduRewards.issueCertificate(student.address, certUri);
+                await aranduRewards.issueCertificate(student.address, certUri, "student");
 
                 // Verify ownership
                 expect(await aranduCertificates.balanceOf(student.address)).to.equal(1);
@@ -76,7 +76,7 @@ describe("HU02 - Student as Learner: Receiving Rewards and Certificates", functi
                 const certUri = "https://example.com/certificate/1";
 
                 // Issue certificate
-                await aranduRewards.issueCertificate(student.address, certUri);
+                await aranduRewards.issueCertificate(student.address, certUri, "student");
 
                 // Verify URI
                 expect(await aranduCertificates.tokenURI(0)).to.equal(certUri);
@@ -88,7 +88,7 @@ describe("HU02 - Student as Learner: Receiving Rewards and Certificates", functi
         context("when a student tries to transfer their certificate", function () {
             it("should revert because certificates are soulbound and non-transferable", async function () {
                 // Issue certificate first
-                await aranduRewards.issueCertificate(student.address, "uri");
+                await aranduRewards.issueCertificate(student.address, "uri", "student");
 
                 // Attempt transfer (should fail)
                 await expect(

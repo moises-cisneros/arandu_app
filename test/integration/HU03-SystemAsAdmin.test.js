@@ -50,12 +50,12 @@ describe("HU03 - System as Admin: Exclusive Control Over Critical Functions", fu
 
         context("when testing AranduCertificates safeMint function", function () {
             it("should succeed when called by AranduRewards (which is owned by deployer)", async function () {
-                await expect(aranduRewards.issueCertificate(student.address, "uri")).to.not.be.reverted;
+                await expect(aranduRewards.issueCertificate(student.address, "uri", "student")).to.not.be.reverted;
             });
 
             it("should revert when called directly by non-owner", async function () {
                 await expect(
-                    aranduCertificates.connect(creatorTeacher).safeMint(student.address, "uri")
+                    aranduCertificates.connect(creatorTeacher).safeMint(student.address, "uri", "student")
                 ).to.be.revertedWithCustomError(aranduCertificates, "OwnableUnauthorizedAccount");
             });
         });
@@ -90,12 +90,12 @@ describe("HU03 - System as Admin: Exclusive Control Over Critical Functions", fu
 
         context("when testing AranduRewards issueCertificate function", function () {
             it("should succeed when called by deployer", async function () {
-                await expect(aranduRewards.issueCertificate(student.address, "uri")).to.not.be.reverted;
+                await expect(aranduRewards.issueCertificate(student.address, "uri", "student")).to.not.be.reverted;
             });
 
             it("should revert when called by non-owner", async function () {
                 await expect(
-                    aranduRewards.connect(creatorTeacher).issueCertificate(student.address, "uri")
+                    aranduRewards.connect(creatorTeacher).issueCertificate(student.address, "uri", "student")
                 ).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
             });
         });

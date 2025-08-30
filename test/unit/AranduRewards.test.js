@@ -89,12 +89,12 @@ describe("AranduRewards", function () {
 
     describe("Issue Certificate", function () {
         it("Should allow the owner to issue certificates", async function () {
-            await expect(aranduRewards.issueCertificate(student1.address, "CertificateURI")).to.not.be.reverted;
+            await expect(aranduRewards.issueCertificate(student1.address, "CertificateURI", "student")).to.not.be.reverted;
             expect(await aranduCertificates.ownerOf(0)).to.equal(student1.address);
         });
 
         it("Should fail if a non-owner tries to issue certificates", async function () {
-            await expect(aranduRewards.connect(teacher1).issueCertificate(student1.address, "CertificateURI")).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
+            await expect(aranduRewards.connect(teacher1).issueCertificate(student1.address, "CertificateURI", "student")).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
         });
     });
 });

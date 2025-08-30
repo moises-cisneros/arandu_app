@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "packageManager": "yarn@3.2.3",
+  "type": "module",
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
@@ -31,7 +32,8 @@
     "deploy": "hardhat deploy",
     "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
     "deploy:testnet": "hardhat run scripts/deploy.js --network lisk-sepolia",
+    "interact:local": "hardhat run scripts/interact.js --network hardhat",
+    "interact:testnet": "hardhat run scripts/interact.js --network lisk-sepolia",
     "chain": "hardhat node --network hardhat"
-  },
-  "type": "module"
+  }
 }

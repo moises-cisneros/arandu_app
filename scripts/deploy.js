@@ -36,7 +36,7 @@ async function getWallet(network) {
     return await ethers.Wallet.fromEncryptedJson(encryptedWallet, password);
 }
 
-async function saveDeployment(network, contractName, contractAddress, abi) {
+async function saveDeployment(network, contractAddress, abi) {
     const deploymentsDir = path.join(process.cwd(), "deployments", network);
     if (!fs.existsSync(deploymentsDir)) {
         fs.mkdirSync(deploymentsDir, { recursive: true });
@@ -47,9 +47,11 @@ async function saveDeployment(network, contractName, contractAddress, abi) {
         network: network,
         deployedAt: new Date().toISOString(),
     };
-    fs.writeFileSync(path.join(deploymentsDir, `${contractName}.json`), JSON.stringify(deploymentData, null, 2));
-    console.log(`Artefactos de ${contractName} guardados en: ${deploymentsDir}`);
-} async function main() {
+    fs.writeFileSync(path.join(deploymentsDir, "NFT.json"), JSON.stringify(deploymentData, null, 2));
+    console.log(`Artefactos guardados en: ${deploymentsDir}`);
+}
+
+async function main() {
     const network = hre.network.name;
     console.log(`Desplegando en red: ${network}`);
 
@@ -64,64 +66,24 @@ async function saveDeployment(network, contractName, contractAddress, abi) {
     console.log("Desplegando contratos con la cuenta:", deployer.address);
     console.log("Balance de la cuenta:", (await deployer.provider.getBalance(deployer.address)).toString());
 
-    // Desplegar ANDUToken
-    console.log("Desplegando ANDUToken...");
-    const ANDUToken = await ethers.getContractFactory("ANDUToken", deployer);
-    const anduToken = await ANDUToken.deploy(deployer.address);
-    await anduToken.waitForDeployment();
-    const tokenAddress = await anduToken.getAddress();
-    console.log("ANDUToken desplegado en:", tokenAddress);
+    // Obtener el contrato NFT
+    const NFT = await ethers.getContractFactory("NFT", deployer);
 
-    // Desplegar AranduCertificates
-    console.log("Desplegando AranduCertificates...");
-    const AranduCertificates = await ethers.getContractFactory("AranduCertificates", deployer);
-    const certificates = await AranduCertificates.deploy(deployer.address);
-    await certificates.waitForDeployment();
-    const certAddress = await certificates.getAddress();
-    console.log("AranduCertificates desplegado en:", certAddress);
+    // Desplegar el contrato
+    const nft = await NFT.deploy();
 
-    // Desplegar AranduRewards
-    console.log("Desplegando AranduRewards...");
-    const AranduRewards = await ethers.getContractFactory("AranduRewards", deployer);
-    const rewards = await AranduRewards.deploy(deployer.address);
-    await rewards.waitForDeployment();
-    const rewardsAddress = await rewards.getAddress();
-    console.log("AranduRewards desplegado en:", rewardsAddress);
+    await nft.waitForDeployment();
 
-    // Configurar direcciones en AranduRewards
-    await rewards.setAddresses(tokenAddress, certAddress);
+    const address = await nft.getAddress();
+    console.log("NFT desplegado en:", address);
 
-    // Desplegar AranduResources
-    console.log("Desplegando AranduResources...");
-    const AranduResources = await ethers.getContractFactory("AranduResources", deployer);
-    const resources = await AranduResources.deploy(tokenAddress);
-    await resources.waitForDeployment();
-    const resourcesAddress = await resources.getAddress();
-    console.log("AranduResources desplegado en:", resourcesAddress);
-
-    // Desplegar AranduMarketplace
-    console.log("Desplegando AranduMarketplace...");
-    const AranduMarketplace = await ethers.getContractFactory("AranduMarketplace", deployer);
-    const marketplace = await AranduMarketplace.deploy(deployer.address);
-    await marketplace.waitForDeployment();
-    const marketAddress = await marketplace.getAddress();
-    console.log("AranduMarketplace desplegado en:", marketAddress);
-
-    // Configurar direcciones en AranduMarketplace (usando resources como resourceNft)
-    await marketplace.setAddresses(resourcesAddress, tokenAddress);  // Guardar artefactos
-    await saveDeployment(network, "ANDUToken", tokenAddress, await getAbi("ANDUToken"));
-    await saveDeployment(network, "AranduCertificates", certAddress, await getAbi("AranduCertificates"));
-    await saveDeployment(network, "AranduRewards", rewardsAddress, await getAbi("AranduRewards"));
-    await saveDeployment(network, "AranduMarketplace", marketAddress, await getAbi("AranduMarketplace"));
-    await saveDeployment(network, "AranduResources", resourcesAddress, await getAbi("AranduResources"));
-
-    console.log("Todos los contratos desplegados exitosamente!");
+    // Guardar artefactos
+    const artifact = await hre.artifacts.readArtifact("NFT");
+    const abi = artifact.abi;
+    await saveDeployment(network, address, abi);
 }
 
-async function getAbi(contractName) {
-    const artifact = await hre.artifacts.readArtifact(contractName);
-    return artifact.abi;
-} main().catch((error) => {
+main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
 });

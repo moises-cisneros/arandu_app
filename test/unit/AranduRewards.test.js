@@ -43,13 +43,47 @@ describe("AranduRewards", function () {
 
     describe("Grant Token Reward", function () {
         it("Should allow the owner to grant token rewards", async function () {
-            await anduToken.mint(await aranduRewards.getAddress(), 100);
+            // Transfer some tokens from deployer to rewards contract (simulating deployment)
+            await anduToken.transfer(await aranduRewards.getAddress(), 100);
             await expect(aranduRewards.grantTokenReward(student1.address, 50)).to.not.be.reverted;
             expect(await anduToken.balanceOf(student1.address)).to.equal(50);
         });
 
         it("Should fail if a non-owner tries to grant token rewards", async function () {
             await expect(aranduRewards.connect(teacher1).grantTokenReward(student1.address, 50)).to.be.revertedWithCustomError(aranduRewards, "OwnableUnauthorizedAccount");
+        });
+    });
+
+    describe("Initial Supply Distribution", function () {
+        it("Should receive initial token supply from deployer", async function () {
+            const initialSupply = ethers.parseEther("1000000"); // 1,000,000 tokens
+
+            // Verify deployer has initial supply
+            expect(await anduToken.balanceOf(deployer.address)).to.equal(initialSupply);
+
+            // Transfer all tokens to rewards contract (simulating deployment)
+            await anduToken.transfer(await aranduRewards.getAddress(), initialSupply);
+
+            // Verify rewards contract received the tokens
+            expect(await anduToken.balanceOf(await aranduRewards.getAddress())).to.equal(initialSupply);
+            expect(await anduToken.balanceOf(deployer.address)).to.equal(0);
+        });
+
+        it("Should be able to distribute rewards after receiving initial supply", async function () {
+            const initialSupply = ethers.parseEther("1000000");
+            const rewardAmount = ethers.parseEther("100");
+
+            // Transfer tokens to rewards contract
+            await anduToken.transfer(await aranduRewards.getAddress(), initialSupply);
+
+            // Grant reward to student
+            await expect(aranduRewards.grantTokenReward(student1.address, rewardAmount)).to.not.be.reverted;
+
+            // Verify student received the reward
+            expect(await anduToken.balanceOf(student1.address)).to.equal(rewardAmount);
+
+            // Verify rewards contract balance decreased
+            expect(await anduToken.balanceOf(await aranduRewards.getAddress())).to.equal(initialSupply - rewardAmount);
         });
     });
 

@@ -19,6 +19,12 @@ describe("ANDUToken", function () {
         it("Should deploy and assign the owner correctly", async function () {
             expect(await anduToken.owner()).to.equal(deployer.address);
         });
+
+        it("Should mint initial supply to the deployer", async function () {
+            const expectedSupply = ethers.parseEther("1000000"); // 1,000,000 tokens
+            expect(await anduToken.totalSupply()).to.equal(expectedSupply);
+            expect(await anduToken.balanceOf(deployer.address)).to.equal(expectedSupply);
+        });
     });
 
     describe("Permissions", function () {

@@ -26,14 +26,17 @@
   },
   "scripts": {
     "test": "hardhat test",
+    "test:unit": "hardhat test test/unit/*.js",
+    "test:integration": "hardhat test test/integration/*.js",
     "lint": "eslint . --ext .js,.ts",
     "generate": "hardhat run scripts/generateWallet.js",
-    "account": "hardhat account",
+    "account": "hardhat run scripts/account.js",
     "deploy": "hardhat deploy",
     "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
     "deploy:testnet": "hardhat run scripts/deploy.js --network lisk-sepolia",
-    "interact:local": "hardhat run scripts/interact.js --network hardhat",
-    "interact:testnet": "hardhat run scripts/interact.js --network lisk-sepolia",
-    "chain": "hardhat node --network hardhat"
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "setup": "hardhat run scripts/setup.js",
+    "chain": "hardhat node --network hardhat",
+    "compile": "hardhat compile"
   }
 }

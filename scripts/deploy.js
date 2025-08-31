@@ -5,6 +5,28 @@ import * as readline from "readline";
 
 const { ethers } = hre;
 
+// Configuración de tokens conocidos por red
+const KNOWN_TOKENS = {
+    "lisk-sepolia": {
+        // LSK es el token nativo (como ETH), no un ERC-20
+        // Solo incluimos tokens ERC-20 adicionales aquí
+        // ANDU token se cargará dinámicamente desde despliegue o variable de entorno
+        ANDU: null // Se configurará automáticamente
+    },
+    "hardhat": {
+        // Tokens de prueba locales se cargarán dinámicamente
+        ANDU: null
+    }
+};
+
+// ABI para consultar tokens ERC-20
+const ERC20_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function decimals() view returns (uint8)",
+    "function symbol() view returns (string)",
+    "function name() view returns (string)"
+];
+
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -16,6 +38,63 @@ function askPassword() {
             resolve(password);
         });
     });
+}
+
+// Función para consultar balance de token ERC-20
+async function getTokenBalance(tokenAddress, ownerAddress, provider) {
+    try {
+        const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+        const balance = await tokenContract.balanceOf(ownerAddress);
+        const decimals = await tokenContract.decimals();
+        const symbol = await tokenContract.symbol();
+        return {
+            balance: ethers.formatUnits(balance, decimals),
+            symbol: symbol,
+            formatted: `${ethers.formatUnits(balance, decimals)} ${symbol}`
+        };
+    } catch (error) {
+        return {
+            balance: "Error",
+            symbol: "TOKEN",
+            formatted: "Error al consultar balance"
+        };
+    }
+}
+
+// Función para cargar tokens desde despliegues
+async function loadDeployedTokens(network) {
+    try {
+        const deploymentPath = path.join(process.cwd(), 'deployments', network, 'ANDUToken.json');
+
+        if (fs.existsSync(deploymentPath)) {
+            const deploymentData = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+            if (KNOWN_TOKENS[network]) {
+                KNOWN_TOKENS[network].ANDU = {
+                    address: deploymentData.address,
+                    symbol: "ANDU",
+                    decimals: 18,
+                    name: "Arandu Token"
+                };
+            }
+            return deploymentData.address;
+        }
+    } catch (error) {
+        console.log(`⚠️ No se pudo cargar ANDU desde despliegues: ${error.message}`);
+    }
+
+    // Fallback: variable de entorno
+    const envAddress = process.env[`REACT_APP_ANDU_TOKEN_ADDRESS`] || process.env[`${network.toUpperCase()}_ANDU_ADDRESS`];
+    if (envAddress && KNOWN_TOKENS[network]) {
+        KNOWN_TOKENS[network].ANDU = {
+            address: envAddress,
+            symbol: "ANDU",
+            decimals: 18,
+            name: "Arandu Token"
+        };
+        return envAddress;
+    }
+
+    return null;
 }
 
 async function getWallet(network) {
@@ -79,7 +158,61 @@ async function main() {
 
     console.log("📍 Desplegando contratos con la cuenta:", deployer.address);
     const balance = await deployer.provider.getBalance(deployer.address);
-    console.log("💰 Balance de la cuenta:", ethers.formatEther(balance), "ETH");
+    
+    // Determinar el símbolo del token nativo
+    const nativeToken = network === "lisk-sepolia" ? "LSK" : "ETH";
+    const formattedBalance = ethers.formatEther(balance);
+    
+    console.log(`💰 Balance de la cuenta: ${formattedBalance} ${nativeToken}`);
+    
+    // Cargar configuración de tokens para mostrar balances
+    console.log(`\n🔄 Cargando configuración de tokens para ${network}...`);
+    await loadDeployedTokens(network);
+    
+    // Mostrar balances de tokens ERC-20 conocidos
+    if (KNOWN_TOKENS[network]) {
+        console.log("\n🪙 Balances de Tokens ERC-20:");
+        const tokenEntries = Object.entries(KNOWN_TOKENS[network]);
+        
+        if (tokenEntries.length === 0) {
+            console.log("   No hay tokens configurados para esta red");
+        } else {
+            for (const [tokenName, tokenConfig] of tokenEntries) {
+                if (tokenConfig && tokenConfig.address) {
+                    try {
+                        const tokenBalance = await getTokenBalance(tokenConfig.address, deployer.address, deployer.provider);
+                        console.log(`   ${tokenName}: ${tokenBalance.formatted}`);
+                    } catch (error) {
+                        console.log(`   ${tokenName}: Error al consultar (${error.message})`);
+                    }
+                } else {
+                    console.log(`   ${tokenName}: No configurado`);
+                }
+            }
+        }
+    }
+    
+    // Verificar balance mínimo para despliegue (ajustado para testing)
+    const minBalance = ethers.parseEther("0.0000000001"); // Mínimo muy bajo para testing
+    if (balance < minBalance) {
+        console.log(`\n❌ Balance insuficiente para gas. Necesitas al menos ${ethers.formatEther(minBalance)} ETH`);
+        console.log(`📊 Tu balance actual: ${ethers.formatEther(balance)} ETH`);
+        console.log(`\n💡 Para Lisk Sepolia necesitas ETH (no LSK) para pagar gas`);
+        console.log(`💡 Obtén ETH desde:`);
+        if (network === "lisk-sepolia") {
+            console.log(`   - Faucet Sepolia ETH: https://sepoliafaucet.com`);
+            console.log(`   - Luego usa Lisk Bridge: https://bridge.sepolia-api.lisk.com`);
+            console.log(`   - O directo: https://faucet.sepolia-api.lisk.com`);
+        } else {
+            console.log(`   - Faucet de Sepolia: https://sepoliafaucet.com`);
+            console.log(`   - Alchemy Faucet: https://sepoliafaucet.com`);
+        }
+        console.log(`\n🔄 Una vez que tengas ETH, ejecuta nuevamente:`);
+        console.log(`   yarn deploy:testnet`);
+        process.exit(1);
+    }
+    
+    console.log(`✅ Balance suficiente para deployment: ${ethers.formatEther(balance)} ETH`);
 
     // Desplegar ANDUToken con AccessControl
     console.log("\n1️⃣ Desplegando ANDUToken con AccessControl...");
@@ -118,6 +251,10 @@ async function main() {
     await aranduRewards.setAddresses(anduTokenAddress, certificatesAddress, badgesAddress);
     console.log("✅ Direcciones configuradas correctamente");
 
+    // Pequeña pausa para evitar problemas de nonce
+    console.log("\n⏳ Esperando para evitar conflictos de nonce...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
     // Desplegar AranduResources
     console.log("\n5️⃣ Desplegando AranduResources...");
     const AranduResources = await ethers.getContractFactory("AranduResources", deployer);
@@ -125,6 +262,9 @@ async function main() {
     await aranduResources.waitForDeployment();
     const resourcesAddress = await aranduResources.getAddress();
     console.log("✅ AranduResources desplegado en:", resourcesAddress);
+
+    // Pequeña pausa para evitar problemas de nonce
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Desplegar DataAnchor
     console.log("\n6️⃣ Desplegando DataAnchor...");

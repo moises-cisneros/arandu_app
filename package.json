@@ -1,8 +1,11 @@
 {
   "name": "arandu_app",
   "version": "1.0.0",
+  "description": "ARANDU - Transforming Education Through Blockchain. A gamified educational platform for Latin America built on Lisk.",
   "main": "index.js",
   "license": "MIT",
+  "author": "ARANDU Team - Aleph Hackathon 2025",
+  "keywords": ["blockchain", "education", "lisk", "gamification", "web3", "solidity", "latin-america", "nft"],
   "packageManager": "yarn@3.2.3",
   "type": "module",
   "devDependencies": {

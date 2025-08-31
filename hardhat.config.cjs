@@ -11,6 +11,8 @@ module.exports = {
       url: "https://rpc.sepolia-api.lisk.com",
       chainId: 4202,
       accounts: [],
+      gasPrice: 1000000000,
+      gas: 8000000,
     },
   },
 };
